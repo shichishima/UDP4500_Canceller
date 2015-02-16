@@ -52,8 +52,6 @@ class upnpc
      */
     private function parseResult()
     {
-        $isTable = false;
-        
         foreach ($this->result as $line) {
             //print "$line\n";
 
@@ -61,10 +59,10 @@ class upnpc
                 $this->localIPaddress = $vals[1];
             } else if (preg_match('/^ExternalIPAddress = ([\d\.]+)$/', $line, $vals)) {
                 $this->externalIPaddress = $vals[1];
-            } else if (preg_match('/i protocol exPort->inAddr:inPort description remoteHost leaseTime/', $line)) {
-                $isTable = true;
-            } else if ($isTable && preg_match('/(\d+) +([A-Za-z]+) +(\d+)->([\d\.]+)?:(\d+) +\'([^\']*)\' +\'([^\']*)\' +(\d+)/', $line, $vals)) {
-                // i protocol exPort->inAddr:inPort description remoteHost leaseTime
+            } else if (preg_match('/(\d+) +([A-Za-z]+) +(\d+)->([\d\.]+)?:(\d+) +\'([^\']*)\' +\'([^\']*)\'( +(\d+))?/', $line, $vals)) {
+                // i protocol exPort->inAddr:inPort 'description' 'remoteHost' leaseTime
+                // Raspbian版だと末尾のleaseTime項目がない
+                //print_r($vals);
                 $no = $vals[1];
                 $protocol = $vals[2];
                 $exPort = $vals[3];
@@ -72,7 +70,7 @@ class upnpc
                 $inPort = $vals[5];
                 $description = $vals[6];
                 $remoteHost = $vals[7];
-                $leaseTime = $vals[8];
+                $leaseTime = (isset($vals[9]) ? $vals[9] : '');
 
                 $this->mapping[$protocol][$exPort]
                     = array('inAddr' => $inAddr,
